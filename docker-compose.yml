@@ -1,0 +1,36 @@
+version: '3.3'
+
+services:
+  test_dev_work: # Python development environment container
+    build:
+      context: dev_build
+    image: ${IMAGE_NAME}
+    container_name: test_dev_work
+    volumes: #
+      - type: bind
+        source: ${DATABACKUPDIR}
+        target: /data/
+    working_dir: /data/work/
+    tty: true
+    stdin_open: true
+  test_dev_db: # DB container
+    image: mysql:8.4
+    container_name: test_dev_db
+    volumes: # Backing up data with bind mount
+      - type: bind
+        source: ${DBBACKUPDIR}
+        target: /var/lib/mysql
+    ports:
+      - '12346:3306'
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD} # mysql root password
+      MYSQL_DATABASE: dev # db name
+      MYSQL_USER: user
+      MYSQL_PASSWORD: ${MYSQL_USER_PASSWORD} # mysql user passward
+networks: # Specify subnets to avoid using too many networks
+  default:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: ${NETWORK_SUBNET}
